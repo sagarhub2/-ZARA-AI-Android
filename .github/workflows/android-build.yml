@@ -94,34 +94,47 @@ jobs:
           s = p.read_text().replace('?: "Tech GPTx"', '?: "Sagar"')
           p.write_text(s)
           PY
-          # Standardize user-visible branding in Android XML resources only;
-          # keep Kotlin/Java identifiers and package references unchanged.
+          # Change visible branding only in XML text nodes/attributes, never Android resource IDs.
           python3 - <<'PY'
           from pathlib import Path
-          root = Path('app/src/main')
-          text_exts = {'.xml'}
+          import re
+          root = Path('app/src/main/res')
           substitutions = [
-              ('TechGPT X', 'ZARA AI'), ('TechGPT X', 'ZARA AI'),
-              ('Tech GPTx', 'Sagar'), ('TechGptX', 'ZARA AI'),
-              ('Jarvis Assistant', 'ZARA AI'), ('JARVIS Assistant', 'ZARA AI'),
-              ('Jarvis', 'ZARA AI'), ('JARVIS', 'ZARA AI'),
-              ('Rehaan Sir', 'Sagar'), ('Rehaan', 'Sagar'),
+              ('TechGPT X', 'ZARA AI'),
+              ('Tech GPTx', 'Sagar'),
+              ('TechGptX', 'ZARA AI'),
+              ('Jarvis Assistant', 'ZARA AI'),
+              ('JARVIS Assistant', 'ZARA AI'),
+              ('Jarvis', 'ZARA AI'),
+              ('JARVIS', 'ZARA AI'),
+              ('Rehaan Sir', 'Sagar'),
+              ('Rehaan', 'Sagar'),
           ]
-          for p in root.rglob('*'):
-              if p.is_file() and p.suffix.lower() in text_exts:
-                  try:
-                      s = p.read_text()
-                  except (UnicodeDecodeError, OSError):
-                      continue
-                  original = s
+          for p in root.rglob('*.xml'):
+              try:
+                  s = p.read_text()
+              except (UnicodeDecodeError, OSError):
+                  continue
+              # Preserve tag syntax and all resource IDs; replace only text outside tags.
+              def replace_text(match):
+                  value = match.group(0)
                   for before, after in substitutions:
-                      s = s.replace(before, after)
-                  if s != original:
-                      p.write_text(s)
-          # Android system permission dialogs use the app label from resources.
-          for p in (root / 'res').rglob('strings.xml'):
+                      value = value.replace(before, after)
+                  return value
+              updated = re.sub(r'>([^<>]*)<', lambda m: '>' + replace_text(m) + '<', s)
+              # Update quoted user-facing text attributes only, excluding id/name/style/class references.
+              def attr_replace(match):
+                  attr, quote, value = match.group(1), match.group(2), match.group(3)
+                  if attr in {'android:id', 'android:name', 'style', 'class', 'tools:context'} or attr.endswith(':id'):
+                      return match.group(0)
+                  for before, after in substitutions:
+                      value = value.replace(before, after)
+                  return f'{attr}={quote}{value}{quote}'
+              updated = re.sub(r'([A-Za-z_][\\w:.-]*)=(["\\'])(.*?)\\2', attr_replace, updated)
+              if updated != s:
+                  p.write_text(updated)
+          for p in root.rglob('strings.xml'):
               s = p.read_text()
-              import re
               s = re.sub(r'(<string\\s+name="app_name"[^>]*>).*?(</string>)', r'\\1ZARA AI\\2', s, flags=re.S)
               p.write_text(s)
           PY
