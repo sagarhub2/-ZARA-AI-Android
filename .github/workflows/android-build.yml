@@ -94,48 +94,13 @@ jobs:
           s = p.read_text().replace('?: "Tech GPTx"', '?: "Sagar"')
           p.write_text(s)
           PY
-          # Change visible branding only in XML text nodes/attributes, never Android resource IDs.
+          # Safely set only the launcher label; avoid rewriting arbitrary Android XML.
           python3 - <<'PY'
           from pathlib import Path
           import re
-          root = Path('app/src/main/res')
-          substitutions = [
-              ('TechGPT X', 'ZARA AI'),
-              ('Tech GPTx', 'Sagar'),
-              ('TechGptX', 'ZARA AI'),
-              ('Jarvis Assistant', 'ZARA AI'),
-              ('JARVIS Assistant', 'ZARA AI'),
-              ('Jarvis', 'ZARA AI'),
-              ('JARVIS', 'ZARA AI'),
-              ('Rehaan Sir', 'Sagar'),
-              ('Rehaan', 'Sagar'),
-          ]
-          for p in root.rglob('*.xml'):
-              try:
-                  s = p.read_text()
-              except (UnicodeDecodeError, OSError):
-                  continue
-              # Preserve tag syntax and all resource IDs; replace only text outside tags.
-              def replace_text(match):
-                  value = match.group(0)
-                  for before, after in substitutions:
-                      value = value.replace(before, after)
-                  return value
-              updated = re.sub(r'>([^<>]*)<', lambda m: '>' + replace_text(m) + '<', s)
-              # Update quoted user-facing text attributes only, excluding id/name/style/class references.
-              def attr_replace(match):
-                  attr, quote, value = match.group(1), match.group(2), match.group(3)
-                  if attr in {'android:id', 'android:name', 'style', 'class', 'tools:context'} or attr.endswith(':id'):
-                      return match.group(0)
-                  for before, after in substitutions:
-                      value = value.replace(before, after)
-                  return f'{attr}={quote}{value}{quote}'
-              updated = re.sub(r"""([A-Za-z_][\w:.-]*)=(["'])(.*?)\2""", attr_replace, updated)
-              if updated != s:
-                  p.write_text(updated)
-          for p in root.rglob('strings.xml'):
+          for p in Path('app/src/main/res').rglob('strings.xml'):
               s = p.read_text()
-              s = re.sub(r"""(<string\s+name="app_name"[^>]*>).*?(</string>)""", r"\1ZARA AI\2", s, flags=re.S)
+              s = re.sub(r'<string\s+name="app_name"[^>]*>.*?</string>', '<string name="app_name">ZARA AI</string>', s, count=1, flags=re.S)
               p.write_text(s)
           PY
 
