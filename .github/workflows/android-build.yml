@@ -33,6 +33,17 @@ jobs:
           # The source was rebranded to ZaraAssistant, but ThemeManager still
           # referenced the old generated JarvisAssistant style IDs.
           sed -i 's/Theme_JarvisAssistant_/Theme_ZaraAssistant_/g' app/src/main/java/com/zara/ai/util/ThemeManager.kt
+          # Keep the Jarvis-inspired layout but use ZARA's own branding and greeting.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/com/zara/ai/ui/home/HomeFragment.kt')
+          s = p.read_text()
+          s = s.replace('val timeGreeting = when (hour) {\n            in 4..11 -> "Good morning"\n            in 12..16 -> "Good afternoon"\n            in 17..21 -> "Good evening"\n            else -> "Welcome back"\n        }\n        binding.tvGreeting.text = "$timeGreeting, $userName"', 'binding.tvGreeting.text = "Welcome back, $userName"')
+          p.write_text(s)
+          p = Path('app/src/main/res/layout/fragment_home.xml')
+          s = p.read_text().replace('android:text="Welcome, Rehaan"', 'android:text="Welcome back, Sagar"')
+          p.write_text(s)
+          PY
 
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
