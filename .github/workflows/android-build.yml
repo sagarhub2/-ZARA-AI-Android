@@ -44,6 +44,56 @@ jobs:
           s = p.read_text().replace('android:text="Welcome, Rehaan"', 'android:text="Welcome back, Sagar"')
           p.write_text(s)
           PY
+          # Set the app's visible developer and copyright identity to Sagar.
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'app/src/main/java/com/zara/ai/security/DeveloperInfo.kt': {
+                  'Permanent Developer Identity — Tech GPTx': 'Permanent Developer Identity — Sagar',
+                  'Content creators MUST credit Tech GPTx': 'Content creators should credit Sagar',
+                  'const val DEVELOPER_NAME      = "Tech GPTx"': 'const val DEVELOPER_NAME      = "Sagar"',
+                  '© 2026 Tech GPTx. All Rights Reserved.': '© 2026 Sagar. All Rights Reserved.',
+                  'https://github.com/techgptx/Playlist': 'https://github.com/sagarhub2/-ZARA-AI-Android',
+                  'TAMCL v1.0': 'ZARA AI Project License',
+                  'Tech GPTx — Official ZARA Tutorial Series': 'Sagar — ZARA AI Developer',
+              },
+              'app/src/main/java/com/zara/ai/security/SecurityManager.kt': {
+                  'Developer       : Tech GPTx': 'Developer       : Sagar',
+                  'Copyright © 2026: Tech GPTx. All Rights Reserved.': 'Copyright © 2026: Sagar. All Rights Reserved.',
+                  'https://github.com/techgptx/Playlist': 'https://github.com/sagarhub2/-ZARA-AI-Android',
+                  'const val DEVELOPER_NAME    = "Tech GPTx"': 'const val DEVELOPER_NAME    = "Sagar"',
+                  'Copyright © 2026 Tech GPTx. All Rights Reserved.': 'Copyright © 2026 Sagar. All Rights Reserved.',
+                  'TAMCL v1.0 — Content creators MUST credit Tech GPTx': 'ZARA AI Project License — Sagar',
+              },
+              'app/src/main/res/layout/fragment_settings.xml': {
+                  'ZARA INTELLIGENCE OS • v3.1 PRO\\nEngineered by TechGPT X': 'ZARA AI • Developer: Sagar\\nCopyright © 2026 Sagar',
+              },
+              'app/src/main/res/layout/activity_permission.xml': {
+                  'TechGPT X • Neural Assistant': 'ZARA AI • Developer: Sagar',
+              },
+              'app/src/main/res/layout/activity_privacy_shield.xml': {
+                  'System Authorized ZARA TechGPT X': 'ZARA AI • Developer: Sagar',
+                  'ZARA INTELLIGENCE OS • TECHGPT X\\nEngineered with complete local privacy &amp; transparency': 'ZARA AI • Copyright © 2026 Sagar\\nPrivacy &amp; transparency',
+              },
+              'app/src/main/java/com/zara/ai/util/PromptGenerator.kt': {
+                  'I was created and developed by Rehaan Sir, an expert AI creator who runs the @TechGptX YouTube channel!': 'I was created and developed by Sagar, the developer of ZARA AI.',
+                  'Mujhe Rehaan Sir ne banaya aur train kiya hai, jo ek expert AI developer hain aur YouTube par @TechGptX channel chalate hain!': 'Mujhe Sagar ne develop kiya hai, jo ZARA AI ke developer hain!',
+                  'Mention that Rehaan Sir is an expert AI developer, tech innovator, and creator who runs the popular YouTube channel @TechGptX.': 'Mention that Sagar is the developer of ZARA AI.',
+              },
+          }
+          for filename, pairs in replacements.items():
+              p = Path(filename)
+              if not p.exists():
+                  print(f'SKIP missing {filename}')
+                  continue
+              s = p.read_text()
+              for before, after in pairs.items():
+                  s = s.replace(before, after)
+              p.write_text(s)
+          p = Path('app/build.gradle.kts')
+          s = p.read_text().replace('?: "Tech GPTx"', '?: "Sagar"')
+          p.write_text(s)
+          PY
 
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
