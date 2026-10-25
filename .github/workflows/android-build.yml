@@ -94,12 +94,12 @@ jobs:
           s = p.read_text().replace('?: "Tech GPTx"', '?: "Sagar"')
           p.write_text(s)
           PY
-          # Standardize user-visible app identity across settings, permission explainer
-          # screens, dialogs, menus and Android's displayed application label.
+          # Standardize user-visible branding in Android XML resources only;
+          # keep Kotlin/Java identifiers and package references unchanged.
           python3 - <<'PY'
           from pathlib import Path
           root = Path('app/src/main')
-          text_exts = {'.xml', '.kt', '.java', '.json', '.html', '.txt'}
+          text_exts = {'.xml'}
           substitutions = [
               ('TechGPT X', 'ZARA AI'), ('TechGPT X', 'ZARA AI'),
               ('Tech GPTx', 'Sagar'), ('TechGptX', 'ZARA AI'),
