@@ -104,6 +104,35 @@ jobs:
               p.write_text(s)
           PY
 
+      - name: Brand hands-free control as autonomous device control
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          roots = [Path('app/src/main')]
+          patterns = [
+              (r'Hands[ -]?Free App Control', 'ZARA AI — Autonomous Device Control'),
+              (r'Hands[ -]?Free Control', 'ZARA AI — Autonomous Device Control'),
+              (r'Autonomous Device Control', 'ZARA AI — Autonomous Device Control'),
+          ]
+          changed = []
+          for root in roots:
+              for p in root.rglob('*'):
+                  if not p.is_file() or p.suffix.lower() not in {'.kt', '.java', '.xml'}:
+                      continue
+                  try:
+                      original = p.read_text(encoding='utf-8')
+                  except (UnicodeDecodeError, OSError):
+                      continue
+                  updated = original
+                  for pattern, replacement in patterns:
+                      updated = re.sub(pattern, replacement, updated, flags=re.I)
+                  if updated != original:
+                      p.write_text(updated, encoding='utf-8')
+                      changed.append(str(p))
+          print('Updated hands-free/autonomous control branding in: ' + (', '.join(changed) if changed else 'no exact matching label found; source needs inspection'))
+          PY
+
       - name: Replace old YouTube promotions and add Sagar social links
         run: |
           python3 - <<'PY'
