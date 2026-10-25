@@ -69,7 +69,7 @@ jobs:
                   'ZARA INTELLIGENCE OS • v3.1 PRO\\nEngineered by TechGPT X': 'ZARA AI • Developer: Sagar\\nCopyright © 2026 Sagar',
               },
               'app/src/main/res/layout/activity_permission.xml': {
-                  'TechGPT X • Neural Assistant': 'ZARA AI • Developer: Sagar',
+                  'TechGPT X • Neural Assistant': 'ZARA AI • Neural Assistant',
               },
               'app/src/main/res/layout/activity_privacy_shield.xml': {
                   'System Authorized ZARA TechGPT X': 'ZARA AI • Developer: Sagar',
