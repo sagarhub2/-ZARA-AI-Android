@@ -94,6 +94,37 @@ jobs:
           s = p.read_text().replace('?: "Tech GPTx"', '?: "Sagar"')
           p.write_text(s)
           PY
+          # Standardize user-visible app identity across settings, permission explainer
+          # screens, dialogs, menus and Android's displayed application label.
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('app/src/main')
+          text_exts = {'.xml', '.kt', '.java', '.json', '.html', '.txt'}
+          substitutions = [
+              ('TechGPT X', 'ZARA AI'), ('TechGPT X', 'ZARA AI'),
+              ('Tech GPTx', 'Sagar'), ('TechGptX', 'ZARA AI'),
+              ('Jarvis Assistant', 'ZARA AI'), ('JARVIS Assistant', 'ZARA AI'),
+              ('Jarvis', 'ZARA AI'), ('JARVIS', 'ZARA AI'),
+              ('Rehaan Sir', 'Sagar'), ('Rehaan', 'Sagar'),
+          ]
+          for p in root.rglob('*'):
+              if p.is_file() and p.suffix.lower() in text_exts:
+                  try:
+                      s = p.read_text()
+                  except (UnicodeDecodeError, OSError):
+                      continue
+                  original = s
+                  for before, after in substitutions:
+                      s = s.replace(before, after)
+                  if s != original:
+                      p.write_text(s)
+          # Android system permission dialogs use the app label from resources.
+          for p in (root / 'res').rglob('strings.xml'):
+              s = p.read_text()
+              import re
+              s = re.sub(r'(<string\\s+name="app_name"[^>]*>).*?(</string>)', r'\\1ZARA AI\\2', s, flags=re.S)
+              p.write_text(s)
+          PY
 
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
