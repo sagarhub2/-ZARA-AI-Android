@@ -1,0 +1,56 @@
+name: Build ZARA AI Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ZARA-AI-Android-source.zip"
+      - ".github/workflows/android-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Extract Android source project
+        run: |
+          unzip -q ZARA-AI-Android-source.zip -d extracted
+          test -f extracted/ZARA-AI-Android/gradlew
+          cp -a extracted/ZARA-AI-Android/. .
+          chmod +x ./gradlew
+
+      - name: Build debug APK and run unit tests
+        run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
+
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZARA-AI-debug-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Gradle diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZARA-AI-build-diagnostics
+          path: |
+            **/build/reports/
+            **/build/test-results/
+            ~/.gradle/daemon/*/daemon-*.out.log
+          if-no-files-found: ignore
+          retention-days: 7
