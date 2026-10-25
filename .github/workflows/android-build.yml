@@ -30,6 +30,9 @@ jobs:
           test -f extracted/ZARA-AI-Android/gradlew
           cp -a extracted/ZARA-AI-Android/. .
           chmod +x ./gradlew
+          # The source was rebranded to ZaraAssistant, but ThemeManager still
+          # referenced the old generated JarvisAssistant style IDs.
+          sed -i 's/Theme_JarvisAssistant_/Theme_ZaraAssistant_/g' app/src/main/java/com/zara/ai/util/ThemeManager.kt
 
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
