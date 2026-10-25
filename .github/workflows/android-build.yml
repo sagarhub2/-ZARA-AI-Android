@@ -130,12 +130,12 @@ jobs:
                   for before, after in substitutions:
                       value = value.replace(before, after)
                   return f'{attr}={quote}{value}{quote}'
-              updated = re.sub(r'([A-Za-z_][\\w:.-]*)=(["\\'])(.*?)\\2', attr_replace, updated)
+              updated = re.sub(r"""([A-Za-z_][\w:.-]*)=(["'])(.*?)\2""", attr_replace, updated)
               if updated != s:
                   p.write_text(updated)
           for p in root.rglob('strings.xml'):
               s = p.read_text()
-              s = re.sub(r'(<string\\s+name="app_name"[^>]*>).*?(</string>)', r'\\1ZARA AI\\2', s, flags=re.S)
+              s = re.sub(r"""(<string\s+name="app_name"[^>]*>).*?(</string>)""", r"\1ZARA AI\2", s, flags=re.S)
               p.write_text(s)
           PY
 
