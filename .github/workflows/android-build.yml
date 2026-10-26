@@ -228,6 +228,13 @@ jobs:
               s = p.read_text(encoding='utf-8')
               s = re.sub(r'((?:@\\+?id/|android:id=")([^"]*?))ZARA AI([^"]*)', lambda m: m.group(1) + 'Jarvis' + m.group(3), s)
               p.write_text(s, encoding='utf-8')
+          # Restore resource references corrupted by the broad visible-text rebrand.
+          for p in Path('app/src/main/res').rglob('*.xml'):
+              s = p.read_text(encoding='utf-8')
+              def restore_ref(m):
+                  return m.group(0).replace('ZARA AI', 'Jarvis')
+              s = re.sub(r'@(drawable|mipmap|color|font|string|style|anim|layout)/[^"<>]+', restore_ref, s)
+              p.write_text(s, encoding='utf-8')
           # Android resource names may contain only safe identifier characters.
           root = Path('app/src/main/res/values')
           for p in root.rglob('*.xml'):
