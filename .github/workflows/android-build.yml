@@ -243,6 +243,21 @@ jobs:
                   p.write_text(fixed, encoding='utf-8')
           PY
 
+      - name: Repair Android theme attribute names
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          # Android framework style items use the android: namespace, not android_.
+          root = Path('app/src/main/res')
+          for p in root.rglob('*.xml'):
+              s = p.read_text(encoding='utf-8')
+              fixed = re.sub(r'(name=")android_([A-Za-z])', r'\1android:\2', s)
+              if fixed != s:
+                  p.write_text(fixed, encoding='utf-8')
+                  print(f'Repaired framework style attribute names in {p}')
+          PY
+
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
 
