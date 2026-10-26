@@ -232,7 +232,7 @@ jobs:
           for p in Path('app/src/main/res').rglob('*.xml'):
               s = p.read_text(encoding='utf-8')
               def restore_ref(m):
-                  return m.group(0).replace('ZARA AI', 'Jarvis')
+                  return re.sub(r'ZARA AI|Jarvis', lambda x: x.group(0).lower().replace('zara ai', 'jarvis'), m.group(0))
               s = re.sub(r'@(drawable|mipmap|color|font|string|style|anim|layout)/[^"<>]+', restore_ref, s)
               p.write_text(s, encoding='utf-8')
           # Android resource names may contain only safe identifier characters.
