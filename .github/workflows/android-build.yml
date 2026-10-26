@@ -286,10 +286,13 @@ jobs:
               if not target.exists():
                   target.write_text('<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n</resources>\\n', encoding='utf-8')
               txt = target.read_text(encoding='utf-8')
+              additions = ''.join(f'    <string name="{name}">ZARA AI</string>\\n' for name in sorted(aliases))
+              if '</resources>' in txt:
+                  txt = txt.replace('</resources>', additions + '</resources>', 1)
+              else:
+                  raise SystemExit(f'Invalid strings.xml: missing closing </resources> in {target}')
               for name in sorted(aliases):
-                  txt += f'\\n    <string name="{name}">ZARA AI</string>'
                   print(f'Added compatibility string resource: {name}')
-              txt += '\\n'
               target.write_text(txt, encoding='utf-8')
           PY
 
