@@ -150,20 +150,20 @@ jobs:
               if not p.is_file() or p.suffix.lower() not in {'.kt', '.java'}:
                   continue
               s = p.read_text(encoding='utf-8')
-              s = re.sub(r'"(?i:Jarvis(?:\\s+AI)?)"', '"ZARA AI"', s)
+              s = re.sub(r'"(?i:Jarvis(?:\s+AI)?)"', '"ZARA AI"', s)
               p.write_text(s, encoding='utf-8')
           # Force the home greeting independently of the original source wording.
           p = Path('app/src/main/java/com/zara/ai/ui/home/HomeFragment.kt')
           if p.exists():
               s = p.read_text(encoding='utf-8')
-              s = re.sub(r'binding\\.tvGreeting\\.text\\s*=\\s*"[^"]*"', 'binding.tvGreeting.text = "Welcome back, $userName"', s)
+              s = re.sub(r'binding\.tvGreeting\.text\s*=\s*"[^"]*"', 'binding.tvGreeting.text = "Welcome back, $userName"', s)
               s = s.replace('preferences.userName.ifBlank { "Rehaan" }', 'preferences.userName.ifBlank { "Sagar" }')
               s = s.replace('preferences.userName.ifBlank { "Jarvis" }', 'preferences.userName.ifBlank { "Sagar" }')
               p.write_text(s, encoding='utf-8')
           # Keep XML visible labels branded too, without changing resource IDs.
           for p in root.rglob('*.xml'):
               s = p.read_text(encoding='utf-8')
-              s = re.sub(r'(?i)(android:text=")Jarvis(?:\\s+AI)?(")', r'\\1ZARA AI\\2', s)
+              s = re.sub(r'(?i)(android:text=")Jarvis(?:\s+AI)?(")', r'\\1ZARA AI\\2', s)
               s = s.replace('android:text="Welcome, Sagar"', 'android:text="Welcome back, Sagar"')
               p.write_text(s, encoding='utf-8')
           print('Applied exact home title: ZARA AI; greeting: Welcome back, Sagar')
@@ -305,7 +305,7 @@ jobs:
           for p in root.rglob('*.xml'):
               txt = p.read_text(encoding='utf-8')
               if p.parent.name.startswith('values'):
-                  defined.update(re.findall(r'<string\\s+name="([^"]+)"', txt))
+                  defined.update(re.findall(r'<string\s+name="([^"]+)"', txt))
           missing = set()
           for p in root.rglob('*.xml'):
               txt = p.read_text(encoding='utf-8')
