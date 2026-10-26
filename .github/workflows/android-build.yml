@@ -39,13 +39,13 @@ jobs:
           p = Path('app/src/main/java/com/zara/ai/ui/home/HomeFragment.kt')
           s = p.read_text()
           # Greeting always uses the persisted profile name, with no hard-coded personal name.
-          s = s.replace('val userName = preferences.userName.ifBlank { "Rehaan" }', 'val userName = preferences.userName.ifBlank { "User" }')
-          s = s.replace('binding.tvGreeting.text = "$timeGreeting, $userName"', 'binding.tvGreeting.text = "ZARA AI — Welcome Back, $userName 👋"')
+          s = s.replace('val userName = preferences.userName.ifBlank { "Rehaan" }', 'val userName = preferences.userName.ifBlank { "Sagar" }')
+          s = s.replace('binding.tvGreeting.text = "$timeGreeting, $userName"', 'binding.tvGreeting.text = "Welcome back, $userName"')
           s = s.replace('binding.tvGreeting.text = "Welcome back, $userName"', 'binding.tvGreeting.text = "Welcome back, $userName"')
           s = s.replace('binding.tvGreeting.text = "ZARA AI welcomes you, $userName"', 'binding.tvGreeting.text = "Welcome back, $userName"')
           p.write_text(s)
           p = Path('app/src/main/res/layout/fragment_home.xml')
-          s = p.read_text().replace('android:text="Welcome, Rehaan"', 'android:text="ZARA AI — Welcome Back"')
+          s = p.read_text().replace('android:text="Welcome, Rehaan"', 'android:text="Welcome back, Sagar"')
           s = s.replace('android:text="ZARA AI welcomes you"', 'android:text="ZARA AI — Welcome Back"')
           p.write_text(s)
           # Keep the home title and greeting in a normal sans-serif font, matching the simple MANSI AI look.
@@ -61,6 +61,23 @@ jobs:
               return block
           s = re.sub(r'<TextView\\b[^>]*>', normalize_textview, s)
           p.write_text(s)
+          PY
+          # Replace any visible Jarvis wordmark/text in Android XML with ZARA AI.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('app/src/main')
+          for p in root.rglob('*'):
+              if not p.is_file() or p.suffix.lower() != '.xml':
+                  continue
+              try:
+                  s = p.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              updated = re.sub(r'(?i)Jarvis(?:\\s*AI)?', 'ZARA AI', s)
+              updated = updated.replace('Welcome Back, $userName 👋', 'Welcome back, $userName')
+              if updated != s:
+                  p.write_text(updated, encoding='utf-8')
           PY
           # Set the app's visible developer and copyright identity to Sagar.
           python3 - <<'PY'
