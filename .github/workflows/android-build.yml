@@ -295,6 +295,21 @@ jobs:
                   print(f'Repaired framework style attribute names in {p}')
           PY
 
+      - name: Repair corrupted string resource references
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('app/src/main/res')
+          for p in root.rglob('*.xml'):
+              s = p.read_text(encoding='utf-8')
+              fixed = re.sub(r'@string/([^"<> ]*ZARA AI[^"<>]*)', lambda m: '@string/' + re.sub(r'(?i)ZARA AI', 'jarvis', m.group(1)).replace(' ', '_'), s)
+              fixed = re.sub(r'@string/chat_label_ZARA_AI', '@string/chat_label_jarvis', fixed)
+              if fixed != s:
+                  p.write_text(fixed, encoding='utf-8')
+                  print('Repaired string refs in', p)
+          PY
+
       - name: Restore legacy string resource aliases
         run: |
           python3 - <<'PY'
