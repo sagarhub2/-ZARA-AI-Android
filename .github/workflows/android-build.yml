@@ -133,42 +133,51 @@ jobs:
           print('Updated hands-free/autonomous control branding in: ' + (', '.join(changed) if changed else 'no exact matching label found; source needs inspection'))
           PY
 
-      - name: Replace old YouTube promotions and add Sagar social links
+      - name: Remove YouTube links and preserve Sagar social links
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          roots = [Path('app/src/main')]
-          # Remove old creator-channel promotions and replace legacy channel URLs.
-          old_urls = re.compile(r'https?://(?:www\\.)?(?:youtube\\.com/(?:@[^\\s\\"<>]+|channel/[^\\s\\"<>]+|c/[^\\s\\"<>]+|watch\\?v=[^\\s\\"<>]+)|youtu\\.be/[^\\s\\"<>]+)', re.I)
-          for root in roots:
-              for p in root.rglob('*'):
-                  if not p.is_file() or p.suffix.lower() not in {'.kt', '.java', '.xml', '.json', '.html', '.txt'}:
-                      continue
-                  try:
-                      s = p.read_text(encoding='utf-8')
-                  except (UnicodeDecodeError, OSError):
-                      continue
-                  original = s
-                  # Replace legacy YouTube links with the owner's Telegram contact.
-                  s = old_urls.sub('https://t.me/H_sagarr', s)
-                  # Replace legacy channel branding in promotional copy.
-                  s = re.sub(r'@TechGptX|Tech\\s*GPTx|TechGPT\\s*X', 'Sagar', s, flags=re.I)
-                  if s != original:
-                      p.write_text(s, encoding='utf-8')
-          # Ensure both official social links are present as a dedicated resource
-          # so the app can expose them from its Profile/Settings screen.
+
+          root = Path('app/src/main')
+          # Remove YouTube URLs (do not redirect them to another site).
+          youtube_url = re.compile(r'https?://(?:www\\.)?(?:youtube\\.com|youtu\\.be)[^\\s"<>]*', re.I)
+          # Remove obsolete creator/channel promotions, not unrelated YouTube references in general text.
+          obsolete_phrases = [
+              r'I was created and developed by Rehaan Sir[^"\\n]*',
+              r'Mujhe Rehaan Sir ne banaya aur train kiya hai[^"\\n]*',
+              r'Mention that Rehaan Sir is an expert AI developer[^"\\n]*',
+          ]
+          changed = []
+          remaining = []
+          for p in root.rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in {'.kt', '.java', '.xml', '.json', '.html', '.txt'}:
+                  continue
+              try:
+                  original = p.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              updated = youtube_url.sub('', original)
+              for phrase in obsolete_phrases:
+                  updated = re.sub(phrase, '', updated, flags=re.I)
+              if updated != original:
+                  p.write_text(updated, encoding='utf-8')
+                  changed.append(str(p))
+              if re.search(r'https?://(?:www\\.)?(?:youtube\\.com|youtu\\.be)', updated, re.I):
+                  remaining.append(str(p))
+          print('Removed YouTube URLs/promotional phrases from: ' + (', '.join(changed) if changed else 'no matches found'))
+          print('Remaining YouTube URL references: ' + (', '.join(remaining) if remaining else 'none in scanned source files'))
+
+          # Keep the user's own social URLs available as Android string resources.
           values = Path('app/src/main/res/values')
           values.mkdir(parents=True, exist_ok=True)
           strings = values / 'strings.xml'
           s = strings.read_text(encoding='utf-8') if strings.exists() else '<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n</resources>\\n'
           for name, value in [('sagar_telegram_url', 'https://t.me/H_sagarr'), ('sagar_instagram_url', 'https://www.instagram.com/hyee__sagar/')]:
-              if re.search(r'<string\\s+name="' + name + r'"', s):
-                  s = re.sub(r'<string\\s+name="' + name + r'"[^>]*>.*?</string>', f'<string name="{name}">{value}</string>', s, count=1, flags=re.S)
-              else:
-                  s = s.replace('</resources>', f'    <string name="{name}">{value}</string>\\n</resources>')
+              pattern = re.compile(r'<string\\s+name="' + re.escape(name) + r'"[^>]*>.*?</string>', re.S)
+              tag = f'<string name="{name}">{value}</string>'
+              s = pattern.sub(tag, s, count=1) if pattern.search(s) else s.replace('</resources>', f'    {tag}\\n</resources>')
           strings.write_text(s, encoding='utf-8')
-          print('Social link resources set for Telegram and Instagram; legacy YouTube URLs scanned.')
           PY
 
       - name: Build debug APK and run unit tests
