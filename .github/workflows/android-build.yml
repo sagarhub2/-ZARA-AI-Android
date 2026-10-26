@@ -202,6 +202,20 @@ jobs:
                   remaining.append(str(p))
           print('Removed YouTube URLs/promotional phrases from: ' + (', '.join(changed) if changed else 'no matches found'))
           print('Remaining YouTube URL references: ' + (', '.join(remaining) if remaining else 'none in scanned source files'))
+          PY
+
+      - name: Repair invalid Android string resource names
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for p in Path('app/src/main/res/values').glob('*.xml'):
+              s = p.read_text(encoding='utf-8')
+              fixed = re.sub(r'(<(?:string|item|plurals|string-array)\\s+name=")([^"]*)(")', lambda m: m.group(1) + re.sub(r'[^A-Za-z0-9_.]', '_', m.group(2)) + m.group(3), s)
+              if fixed != s:
+                  p.write_text(fixed, encoding='utf-8')
+                  print(f'Repaired invalid resource names in {p}')
+          PY
 
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
