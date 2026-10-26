@@ -209,12 +209,18 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          for p in Path('app/src/main/res/values').glob('*.xml'):
+          root = Path('app/src/main/res/values')
+          for p in root.rglob('*.xml'):
               s = p.read_text(encoding='utf-8')
-              fixed = re.sub(r'(<(?:string|item|plurals|string-array)\\s+name=")([^"]*)(")', lambda m: m.group(1) + re.sub(r'[^A-Za-z0-9_.]', '_', m.group(2)) + m.group(3), s)
+              def fix_name(m):
+                  name = m.group(1)
+                  safe = re.sub(r'[^A-Za-z0-9_.]', '_', name)
+                  if safe != name:
+                      print(f'{p}: repaired resource name {name!r} -> {safe!r}')
+                  return 'name="' + safe + '"'
+              fixed = re.sub(r'name="([^"]*)"', fix_name, s)
               if fixed != s:
                   p.write_text(fixed, encoding='utf-8')
-                  print(f'Repaired invalid resource names in {p}')
           PY
 
       - name: Build debug APK and run unit tests
