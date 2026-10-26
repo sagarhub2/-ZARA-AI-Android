@@ -326,6 +326,48 @@ jobs:
               target.write_text(txt, encoding='utf-8')
           PY
 
+      - name: Force visible home branding and report source matches
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('app/src/main')
+          # Replace visible branding literals across all source and XML files, without touching IDs or filenames.
+          for p in root.rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in {'.kt', '.java', '.xml'}:
+                  continue
+              try:
+                  s = p.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              old = s
+              if p.suffix.lower() in {'.kt', '.java'}:
+                  s = re.sub(r'"([^"\\n]*(?:Jarvis|TechGPT X|Tech GPTx|Rehaan)[^"\\n]*)"', lambda m: '"' + re.sub(r'(?i)Jarvis(?:\\s*AI)?', 'ZARA AI', re.sub(r'(?i)TechGPT X|Tech GPTx|Rehaan', 'Sagar', m.group(1))) + '"', s)
+              else:
+                  s = re.sub(r'(?i)(android:text|tools:text|text|title|label)="([^"]*(?:Jarvis|TechGPT X|Tech GPTx|Rehaan)[^"]*)"', lambda m: m.group(1) + '="' + re.sub(r'(?i)Jarvis(?:\\s*AI)?', 'ZARA AI', re.sub(r'(?i)TechGPT X|Tech GPTx|Rehaan', 'Sagar', m.group(2))) + '"', s)
+              if s != old:
+                  p.write_text(s, encoding='utf-8')
+          # Set the home greeting directly if this binding exists.
+          p = root / 'java/com/zara/ai/ui/home/HomeFragment.kt'
+          if p.exists():
+              s = p.read_text(encoding='utf-8')
+              s = re.sub(r'(?m)binding\\.tvGreeting\\.text\\s*=\\s*[^\\n]+', 'binding.tvGreeting.text = "Welcome back, Sagar"', s)
+              s = re.sub(r'(?m)val userName = .*', 'val userName = "Sagar"', s)
+              p.write_text(s, encoding='utf-8')
+          print('--- remaining visible-branding matches in source ---')
+          for p in root.rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in {'.kt', '.java', '.xml'}:
+                  continue
+              try: s = p.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError): continue
+              if re.search(r'(?i)Jarvis|TechGPT X|Tech GPTx', s):
+                  print(str(p) + ': ' + ' | '.join(x.strip()[:180] for x in s.splitlines() if re.search(r'(?i)Jarvis|TechGPT X|Tech GPTx', x))[:900])
+          print('--- logo/image assets with relevant names ---')
+          for p in root.rglob('*'):
+              if p.is_file() and p.suffix.lower() in {'.png', '.webp', '.jpg', '.jpeg', '.svg'} and re.search(r'logo|jarvis|brand', p.name, re.I):
+                  print(p)
+          PY
+
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
 
