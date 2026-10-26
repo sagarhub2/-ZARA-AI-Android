@@ -204,11 +204,18 @@ jobs:
           print('Remaining YouTube URL references: ' + (', '.join(remaining) if remaining else 'none in scanned source files'))
           PY
 
-      - name: Repair invalid Android string resource names
+      - name: Repair invalid Android resource identifiers
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
+          # The broad visible-text rebrand accidentally changed some XML view IDs.
+          # Restore the original identifier token so Android view binding remains compatible.
+          for p in Path('app/src/main/res/layout').rglob('*.xml'):
+              s = p.read_text(encoding='utf-8')
+              s = re.sub(r'((?:@\\+?id/|android:id=")([^"]*?))ZARA AI([^"]*)', lambda m: m.group(1) + 'Jarvis' + m.group(3), s)
+              p.write_text(s, encoding='utf-8')
+          # Android resource names may contain only safe identifier characters.
           root = Path('app/src/main/res/values')
           for p in root.rglob('*.xml'):
               s = p.read_text(encoding='utf-8')
