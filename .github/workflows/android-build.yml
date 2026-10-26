@@ -265,6 +265,34 @@ jobs:
                   print(f'Repaired framework style attribute names in {p}')
           PY
 
+      - name: Restore legacy string resource aliases
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('app/src/main/res')
+          defined = set()
+          for p in root.rglob('*.xml'):
+              txt = p.read_text(encoding='utf-8')
+              if p.parent.name.startswith('values'):
+                  defined.update(re.findall(r'<string\\s+name="([^"]+)"', txt))
+          missing = set()
+          for p in root.rglob('*.xml'):
+              txt = p.read_text(encoding='utf-8')
+              missing.update(x for x in re.findall(r'@string/([A-Za-z0-9_.]+)', txt) if x not in defined)
+          aliases = {name for name in missing if 'jarvis' in name.lower()}
+          if aliases:
+              target = root / 'values' / 'strings.xml'
+              if not target.exists():
+                  target.write_text('<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n</resources>\\n', encoding='utf-8')
+              txt = target.read_text(encoding='utf-8')
+              for name in sorted(aliases):
+                  txt += f'\\n    <string name="{name}">ZARA AI</string>'
+                  print(f'Added compatibility string resource: {name}')
+              txt += '\\n'
+              target.write_text(txt, encoding='utf-8')
+          PY
+
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
 
