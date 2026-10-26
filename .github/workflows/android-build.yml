@@ -204,6 +204,19 @@ jobs:
           print('Remaining YouTube URL references: ' + (', '.join(remaining) if remaining else 'none in scanned source files'))
           PY
 
+      - name: Restore Java class names in manifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('app/src/main/AndroidManifest.xml')
+          s = p.read_text(encoding='utf-8')
+          # The earlier broad Jarvis text replacement must not alter component class names.
+          s = re.sub(r'(android:name="[^"]*?)ZARA AI([^"]*")', r'\1Jarvis\2', s)
+          p.write_text(s, encoding='utf-8')
+          print('Restored AndroidManifest component class names where the branding pass changed them.')
+          PY
+
       - name: Repair invalid Android resource identifiers
         run: |
           python3 - <<'PY'
