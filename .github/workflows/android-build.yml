@@ -38,10 +38,11 @@ jobs:
           from pathlib import Path
           p = Path('app/src/main/java/com/zara/ai/ui/home/HomeFragment.kt')
           s = p.read_text()
-          s = s.replace('val timeGreeting = when (hour) {\n            in 4..11 -> "Good morning"\n            in 12..16 -> "Good afternoon"\n            in 17..21 -> "Good evening"\n            else -> "Welcome back"\n        }\n        binding.tvGreeting.text = "$timeGreeting, $userName"', 'binding.tvGreeting.text = "Welcome back, $userName"')
+          s = s.replace('val timeGreeting = when (hour) {\n            in 4..11 -> "Good morning"\n            in 12..16 -> "Good afternoon"\n            in 17..21 -> "Good evening"\n            else -> "Welcome back"\n        }\n        binding.tvGreeting.text = "$timeGreeting, $userName"', 'binding.tvGreeting.text = "ZARA AI welcomes you, $userName"')
+          s = s.replace('binding.tvGreeting.text = "Welcome back, $userName"', 'binding.tvGreeting.text = "ZARA AI welcomes you, $userName"')
           p.write_text(s)
           p = Path('app/src/main/res/layout/fragment_home.xml')
-          s = p.read_text().replace('android:text="Welcome, Rehaan"', 'android:text="Welcome back, Sagar"')
+          s = p.read_text().replace('android:text="Welcome, Rehaan"', 'android:text="ZARA AI welcomes you"')
           p.write_text(s)
           PY
           # Set the app's visible developer and copyright identity to Sagar.
