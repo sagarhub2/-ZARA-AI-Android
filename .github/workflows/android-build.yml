@@ -72,7 +72,7 @@ jobs:
                   'TechGPT X • Neural Assistant': 'ZARA AI • Neural Assistant',
               },
               'app/src/main/res/layout/activity_privacy_shield.xml': {
-                  'System Authorized ZARA TechGPT X': 'ZARA AI • Developer: Sagar',
+                  'System Authorized ZARA TechGPT X': 'SYSTEM AUTHORIZED • ZARA AI',
                   'ZARA INTELLIGENCE OS • TECHGPT X\\nEngineered with complete local privacy &amp; transparency': 'ZARA AI • Copyright © 2026 Sagar\\nPrivacy &amp; transparency',
               },
               'app/src/main/java/com/zara/ai/util/PromptGenerator.kt': {
