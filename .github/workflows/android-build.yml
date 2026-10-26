@@ -203,18 +203,6 @@ jobs:
           print('Removed YouTube URLs/promotional phrases from: ' + (', '.join(changed) if changed else 'no matches found'))
           print('Remaining YouTube URL references: ' + (', '.join(remaining) if remaining else 'none in scanned source files'))
 
-          # Keep the user's own social URLs available as Android string resources.
-          values = Path('app/src/main/res/values')
-          values.mkdir(parents=True, exist_ok=True)
-          strings = values / 'strings.xml'
-          s = strings.read_text(encoding='utf-8') if strings.exists() else '<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n</resources>\\n'
-          for name, value in [('sagar_telegram_url', 'https://t.me/H_sagarr'), ('sagar_instagram_url', 'https://www.instagram.com/hyee__sagar/')]:
-              pattern = re.compile(r'<string\\s+name="' + re.escape(name) + r'"[^>]*>.*?</string>', re.S)
-              tag = f'<string name="{name}">{value}</string>'
-              s = pattern.sub(tag, s, count=1) if pattern.search(s) else s.replace('</resources>', f'    {tag}\\n</resources>')
-          strings.write_text(s, encoding='utf-8')
-          PY
-
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon clean assembleDebug testDebugUnitTest
 
